@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 gradpaper-refs contributors
+Copyright (c) 2026 yinzheng-suyuan contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-注意：本许可覆盖的是**脚本与文档**本身，不覆盖任何由脚本从第三方站点取得的文献元数据或全文。
-文献的著作权归原作者与出版方所有，使用范围见 DISCLAIMER.md。
