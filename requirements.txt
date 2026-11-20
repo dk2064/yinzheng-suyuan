@@ -1,0 +1,5 @@
+# yinzheng-suyuan 运行时依赖
+pypdf>=3.0        # 读页数、抽整期里的当篇、合并审核页
+python-docx>=1.0  # 生成审核页 docx
+# 可选：把审核页渲染成 PNG 抽查排版
+# pypdfium2>=4.0

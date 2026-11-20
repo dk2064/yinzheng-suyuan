@@ -1,0 +1,9 @@
+# 运行时产物（不应入库）
+out/
+fulltext/
+audit/
+*.log
+__pycache__/
+*.pyc
+covers/
+_preview/

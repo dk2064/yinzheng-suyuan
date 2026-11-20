@@ -1,0 +1,83 @@
+{
+  "batch": {
+    "source": "gradpaper.com/dissertation",
+    "page": "https://www.gradpaper.com/dissertation",
+    "query": "（示例）基于SAM-MH模型对大学生心理研究",
+    "harvested_at": "2026-11-21 00:00",
+    "total": 18,
+    "downloaded": 10,
+    "note": "示例仅保留 2 条，字段与真实结构一致；items 数量不限"
+  },
+  "items": [
+    {
+      "no": 9,
+      "kind": "学术期刊",
+      "title": "基于模糊数学的大学生心理压力预测模型",
+      "authors": [
+        "张青",
+        "赵静",
+        "王群",
+        "刘嫘",
+        "王雪梅"
+      ],
+      "venue": "湖州师范学院学报",
+      "year": "2011",
+      "volume": "33",
+      "issue": "1",
+      "pages": "127-130",
+      "ids": {
+        "cnki": "HZHX201101028"
+      },
+      "verdict": "confirmed",
+      "notes": "5 位作者，引用取前 3 位加「等」。",
+      "links": [
+        {
+          "label": "知网检索",
+          "url": "https://kns.cnki.net/kns8s/defaultresult/index?kw=%E5%9F%BA%E4%BA%8E%E6%A8%A1%E7%B3%8A%E6%95%B0%E5%AD%A6%E7%9A%84%E5%A4%A7%E5%AD%A6%E7%94%9F%E5%BF%83%E7%90%86%E5%8E%8B%E5%8A%9B%E9%A2%84%E6%B5%8B%E6%A8%A1%E5%9E%8B"
+        }
+      ],
+      "local": {
+        "file": "09.pdf",
+        "source": "NCPSSD 全文接口"
+      }
+    },
+    {
+      "no": 10,
+      "kind": "学术期刊",
+      "title": "基于大数据的学生社交网络心理健康模型研究",
+      "authors": [
+        "王以伍",
+        "舒晖",
+        "曾满江"
+      ],
+      "venue": "现代计算机",
+      "year": "2023",
+      "volume": "29",
+      "issue": "3",
+      "pages": "45-49",
+      "ids": {
+        "cnki": "XDJS202303008"
+      },
+      "verdict": "confirmed",
+      "notes": "NCPSSD 无该篇单篇 PDF，改用期刊官网整期 PDF；正文在整期文件第 49-53 页（印刷页码 45-49），已单独抽取为本条目正文。",
+      "links": [
+        {
+          "label": "整期 PDF（官网）",
+          "url": "http://mpc.zsup.com.cn/downloads/2023%E5%B9%B4%E7%AC%AC29%E5%8D%B7%E7%AC%AC03%E6%9C%9F%E6%80%BB%E7%AC%AC771%E6%9C%9F.pdf"
+        },
+        {
+          "label": "知网检索",
+          "url": "https://kns.cnki.net/kns8s/defaultresult/index?kw=%E5%9F%BA%E4%BA%8E%E5%A4%A7%E6%95%B0%E6%8D%AE%E7%9A%84%E5%AD%A6%E7%94%9F%E7%A4%BE%E4%BA%A4%E7%BD%91%E7%BB%9C%E5%BF%83%E7%90%86%E5%81%A5%E5%BA%B7%E6%A8%A1%E5%9E%8B%E7%A0%94%E7%A9%B6"
+        }
+      ],
+      "local": {
+        "file": "10_moderncomputer_2023_03_whole.pdf",
+        "extract": [
+          49,
+          53
+        ],
+        "source": "现代计算机官网整期 PDF"
+      }
+    }
+  ]
+}
