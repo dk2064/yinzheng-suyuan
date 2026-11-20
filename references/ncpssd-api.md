@@ -7,7 +7,7 @@
 
 `https://www.ncpssd.cn/Literature/articleinfo?id=<id>` 直接访问返回 `monitor - 500`。
 详情页 URL 还需要 `CTJCJS` 参数，它由站内检索跳转时生成，每次不同。所以要么走站内检索，
-要么绕过详情页直接用下面三个接口（推荐后者）。
+要么跳过详情页，直接用下面三个接口（推荐后者；这是省掉页面渲染，不涉及任何鉴权规避）。
 
 ## 1. 检索：`POST /searchHandler/search`
 
