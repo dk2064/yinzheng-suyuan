@@ -15,6 +15,7 @@ Assert-Cap -Value $MaxItems -Max $script:MaxFetchItems -Name 'MaxItems'
 Assert-Terms -Accepted:$AcceptTerms -What '批量取全文'
 . "$PSScriptRoot\ncpssd_api.ps1"
 
+$OutDir = Assert-SafeOutDir -Path $OutDir
 if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Force -Path $OutDir | Out-Null }
 $OutDir = (Resolve-Path $OutDir).Path
 $ListFile = (Resolve-Path $ListFile).Path
@@ -32,8 +33,9 @@ foreach ($line in (Get-Content $ListFile -Encoding utf8)) {
     $done++
     $p = $line.Split('|')
     if ($p.Count -lt 6) { continue }
-    $no = $p[0].Trim(); $type = $p[1].Trim(); $title = $p[2].Trim()
-    $author = $p[3].Trim(); $journal = $p[4].Trim(); $year = $p[5].Trim()
+    $no = Protect-Field ($p[0].Trim()) 20; $type = Protect-Field ($p[1].Trim()) 20; $title = ($p[2].Trim() -replace "[\t\r\n]", " ")
+    $author = Protect-Field ($p[3].Trim()) 80; $journal = Protect-Field ($p[4].Trim()) 80; $year = Protect-Field ($p[5].Trim()) 10
+    if ($no -notmatch "^\d{1,4}$") { continue }
     $outFile = Join-Path $OutDir ('{0:d2}.pdf' -f [int]$no)
 
     if ((Test-Path $outFile) -and -not $Force) {
@@ -73,13 +75,15 @@ foreach ($line in (Get-Content $ListFile -Encoding utf8)) {
             Write-Host "[$no] 下载失败：$($row['title'])"
         }
     } catch {
-        $log.Add("$no`t异常`t0`t$type`t`t$journal`t$year`t`t`t$($_.Exception.Message)")
-        Write-Host "[$no] 异常：$($_.Exception.Message)"
+        $msg = Protect-Secret $_.Exception.Message
+        $log.Add("$no`t异常`t0`t$type`t`t$journal`t$year`t`t`t$msg")
+        Write-SafeHost "[$no] 异常：$msg" "DarkYellow"
     }
     Start-Sleep -Milliseconds 800
 }
 
 $logPath = Join-Path (Split-Path -Parent $ListFile) 'download_log.tsv'
 $log | Set-Content $logPath -Encoding utf8
+Clear-NcpssdSession
 $okCount = ($log | Where-Object { $_ -match '成功|已有' }).Count
 Write-Host "---- $okCount / $($log.Count - 1) 篇落盘；清单：$logPath ----"

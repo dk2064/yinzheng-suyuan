@@ -359,10 +359,23 @@ def main():
     batch = data["batch"]
     batch.setdefault("total", len(data["items"]))
     items = data["items"]
+    src_root = os.path.realpath(args.src_dir)
     for it in items:
         loc = it.setdefault("local", {})
         src = loc.get("file") or ""
         loc["abs"] = os.path.abspath(os.path.join(args.src_dir, src)) if src else ""
+        # 路径护栏：清单（可能来自第三方）不能把读取口带到 src_dir 之外
+        if loc["abs"]:
+            real = os.path.realpath(loc["abs"])
+            if not (real == src_root or real.startswith(src_root + os.sep)):
+                raise SystemExit(f"[拒绝] 第 {it.get('no')} 条的 file 指向源目录之外：{src}")
+            loc["abs"] = real
+        # 页码区间必须是正序正整数
+        ext = loc.get("extract")
+        if ext:
+            if (not isinstance(ext, (list, tuple)) or len(ext) != 2
+                    or not all(isinstance(x, int) and x >= 1 for x in ext) or ext[0] > ext[1]):
+                raise SystemExit(f"[拒绝] 第 {it.get('no')} 条的 extract 不是合法的 [起,止] 页码：{ext!r}")
         loc["exists"] = bool(src) and os.path.isfile(loc["abs"])
 
     if args.cmd == "build":

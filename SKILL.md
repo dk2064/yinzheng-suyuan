@@ -3,7 +3,7 @@ name: yinzheng-suyuan
 display_name: 引证溯源
 description: "引证溯源（yinzheng-suyuan）：本地整理参考文献并逐条追溯到源头、核验真实性、归档全文，仅供个人学习研究使用。两个取候选入口——①从 GradPaper（gradpaper.com/dissertation 智能写作）按题名+学历+学科专业+学校取它推荐的 18 条；②直接在知网（kns.cnki.net）按题名/主题自检索，按相关性、年份、被引、文献类型、排除词筛选。两条来源产出同格式 refs.json，之后做真实性核验、从开放渠道取全文、并在每份全文正文前插入一页「审核页」（题名/出处/核验结论/GB-T 7714 与 APA 引用串/文章链接/文件指纹）后存到本地。当用户说 gradpaper 推荐文献、抓推荐引文、按题目取参考文献、从 gradpaper 导文献、去知网搜参考文献、知网检索筛选文献、审核参考文献是否真实、核对引用出处、下载这批文献全文、给文献加审核页/引用页/封面页、参考文献溯源 时使用。也用于只跑其中一段：仅抓取（-DryRun）、仅知网筛选、仅核验、仅下载全文、仅加审核页。使用前必读包内 DISCLAIMER.md 与 USAGE-POLICY.md；脚本不含也不接受绕过鉴权、破解、验证码绕过、并发爬取等用途。"
 license: MIT
-version: 3.0.0
+version: 3.1.0
 notice: "仅限个人学习研究；不提供文献正文；与 gradpaper.com / kns.cnki.net / ncpssd.cn 无隶属关系；使用前读 USAGE-POLICY.md"
 ---
 

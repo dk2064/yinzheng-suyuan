@@ -22,6 +22,36 @@ if (-not $script:SctlExe) {
 }
 $script:Base = 'https://www.ncpssd.cn'
 $script:UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0'
+$script:MaxPdfBytes = 200MB   # 单份 PDF 体积上限，挡住被塞进来的大文件/非目标资源
+
+# 只用正常 TLS：不降低校验等级，不跳过证书验证
+try {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
+} catch {
+  try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
+}
+
+# 统一发请求：异常信息先脱敏再抛，避免 cookie/token 进日志
+function Invoke-NcpssdSafe {
+  param(
+    [Parameter(Mandatory = $true)][string]$Uri,
+    [string]$Method = 'GET',
+    [hashtable]$Headers,
+    $Body,
+    [string]$OutFile,
+    [int]$TimeoutSec = 60
+  )
+  $arg = @{ Uri = $Uri; Method = $Method; Headers = $Headers; TimeoutSec = $TimeoutSec; UseBasicParsing = $true }
+  if ($null -ne $Body) { $arg['Body'] = $Body }
+  if ($OutFile) { $arg['OutFile'] = $OutFile }
+  try {
+    return Invoke-WebRequest @arg
+  } catch {
+    $msg = $_.Exception.Message
+    if (Get-Command Protect-Secret -ErrorAction SilentlyContinue) { $msg = Protect-Secret $msg }
+    throw "请求失败（$Method $([Uri]$Uri | ForEach-Object { $_.GetLeftPart('Authority') + $_.AbsolutePath })）：$msg"
+  }
+}
 
 function Get-NcpssdCookieHeader {
     if ($script:CookieHeader) { return $script:CookieHeader }
@@ -32,6 +62,12 @@ function Get-NcpssdCookieHeader {
         ForEach-Object { "$($_.name)=$($_.value)" }
     $script:CookieHeader = ($pairs -join '; ')
     return $script:CookieHeader
+}
+
+# 会话清理：cookie 只活在本进程内存里，用完调一次
+function Clear-NcpssdSession {
+    $script:CookieHeader = $null
+    [GC]::Collect()
 }
 
 function New-NcpssdHeaders {
@@ -55,7 +91,7 @@ function Search-Ncpssd {
     $h['Referer'] = "$($script:Base)/Literature/articlelist?sType=0"
     $h['X-Requested-With'] = 'XMLHttpRequest'
     $form = @{ search = $dsl; pageNum = 1; pageSize = $PageSize; sort = '' }
-    $r = Invoke-WebRequest -Uri "$($script:Base)/searchHandler/search" -Method POST -Headers $h -Body $form -TimeoutSec 60 -UseBasicParsing
+    $r = Invoke-NcpssdSafe -Uri "$($script:Base)/searchHandler/search" -Method POST -Headers $h -Body $form
     $j = $r.Content | ConvertFrom-Json -AsHashtable    # 必须 -AsHashtable：返回里有 HtmlUrl/htmlUrl 大小写冲突
     if ($j.data -and $j.data.rows) { return $j.data.rows }
     return @()
@@ -79,7 +115,7 @@ function Get-NcpssdPdfUrl {
         pageType   = 1
     }
     $body = $obj | ConvertTo-Json -Compress
-    $r = Invoke-WebRequest -Uri "$($script:Base)/Literature/readDownloadUrl" -Method POST -Headers $h -Body ([Text.Encoding]::UTF8.GetBytes($body)) -TimeoutSec 60 -UseBasicParsing
+    $r = Invoke-NcpssdSafe -Uri "$($script:Base)/Literature/readDownloadUrl" -Method POST -Headers $h -Body ([Text.Encoding]::UTF8.GetBytes($body))
     $j = $r.Content | ConvertFrom-Json -AsHashtable
     if ($j['url']) { return $j['url'] }
     return $null
@@ -87,7 +123,7 @@ function Get-NcpssdPdfUrl {
 
 function Get-NcpssdMinioSign {
     $h = New-NcpssdHeaders -Json
-    $r = Invoke-WebRequest -Uri "$($script:Base)/common/getMinioSign" -Method POST -Headers $h -Body ([Text.Encoding]::UTF8.GetBytes('{}')) -TimeoutSec 60 -UseBasicParsing
+    $r = Invoke-NcpssdSafe -Uri "$($script:Base)/common/getMinioSign" -Method POST -Headers $h -Body ([Text.Encoding]::UTF8.GetBytes('{}'))
     $j = $r.Content | ConvertFrom-Json -AsHashtable
     return $j['data']
 }
@@ -104,8 +140,14 @@ function Save-NcpssdPdf {
     $h['Referer'] = "$($script:Base)/"
     $dir = Split-Path -Parent $OutFile
     if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
-    try { Invoke-WebRequest -Uri $Url -Headers $h -OutFile $OutFile -TimeoutSec 180 -UseBasicParsing | Out-Null }
-    catch { return $false }
+    try { Invoke-NcpssdSafe -Uri $Url -Headers $h -OutFile $OutFile -TimeoutSec 180 | Out-Null }
+    catch { if (Get-Command Write-SafeHost -ErrorAction SilentlyContinue) { Write-SafeHost "  下载异常：$($_.Exception.Message)" 'DarkYellow' }; return $false }
+    # 体积上限：挡住被塞进来的大文件/非目标资源
+    $len = (Get-Item $OutFile -ErrorAction SilentlyContinue).Length
+    if ($len -gt $script:MaxPdfBytes) {
+        Remove-Item $OutFile -Force -ErrorAction SilentlyContinue
+        return $false
+    }
     $b = [IO.File]::ReadAllBytes($OutFile)
     if ($b.Length -lt 10000 -or -not [Text.Encoding]::ASCII.GetString($b[0..4]).StartsWith('%PDF')) {
         Remove-Item $OutFile -Force -ErrorAction SilentlyContinue

@@ -103,6 +103,13 @@ pwsh -File scripts\add_audit_page.ps1 -Meta .\audit\audit_meta.json -SrcDir .\fu
 
 不做：绕付费墙、绕鉴权、伪造 cookie、绕验证码、并发爬取、代理池、囤积转售、二次分发正文。详见 [USAGE-POLICY.md](USAGE-POLICY.md)。
 
+## 安全
+
+- 完整威胁模型、已做加固、报告通道见 [SECURITY.md](SECURITY.md)。
+- 登录态（cookie）只读目标站点、只存在内存、不落盘不写日志；异常消息统一过 `Protect-Secret` 脱敏。
+- 强制 TLS 1.2/1.3，不关闭证书校验；单份 PDF ≤200 MB；写文件前校验路径不在系统目录。
+- `pwsh -NoProfile -File scripts\check_secrets.ps1 -Strict` 可在分发前扫描 cookie/token/私钥/个人路径/文献正文，命中即 exit 1。
+- 代码与文档对 GitHub Acceptable Use Policies 的逐条对照见 [USAGE-POLICY.md](USAGE-POLICY.md) 第十节：不含恶意代码、不提供托管抓取服务、不做未授权访问、仓库不含任何文献全文。
 ## 目录
 
 ```

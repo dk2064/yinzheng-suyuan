@@ -40,3 +40,48 @@ function Assert-Terms {
         exit 2
     }
 }
+
+# ── 密钥/凭证脱敏：任何要打印或落盘的字符串先过这道 ─────────────────────────
+# 目的：即使某个 HTTP 异常把请求头带进 message，也不会把 web_session 写进日志。
+function Protect-Secret {
+    param([string]$Text)
+    if (-not $Text) { return $Text }
+    $t = $Text
+    # 常见登录态 cookie 名
+    $t = $t -replace '(?i)(web_session|accessId|uuid_\w+|SESSION|JSESSIONID|token|sign)=[^;\s"'']+', '$1=***'
+    # 整行 Cookie 头
+    $t = $t -replace '(?i)(Cookie\s*:\s*)[^\r\n]+', '$1***'
+    # 常见 token 形态
+    $t = $t -replace '(gho|ghp|ghs|ghu)_[A-Za-z0-9]{16,}', '$1_***'
+    $t = $t -replace '\bey[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b', '***JWT***'
+    return $t
+}
+
+function Write-SafeHost {
+    param([string]$Text, [string]$Color = 'Gray')
+    Write-Host (Protect-Secret $Text) -ForegroundColor $Color
+}
+
+# ── 输出目录护栏：拒绝写到系统目录，避免误伤 ─────────────────────────────────
+function Assert-SafeOutDir {
+    param([Parameter(Mandatory = $true)][string]$Path)
+    $full = [IO.Path]::GetFullPath($Path)
+    $bad = @($env:SystemRoot, $env:ProgramFiles, ${env:ProgramFiles(x86)}, "$env:SystemRoot\System32") |
+        Where-Object { $_ } | ForEach-Object { [IO.Path]::GetFullPath($_).TrimEnd('\') }
+    foreach ($b in $bad) {
+        if ($full.StartsWith($b + '\', [StringComparison]::OrdinalIgnoreCase) -or $full.TrimEnd('\') -eq $b) {
+            throw "输出目录不能放在系统目录下：$full"
+        }
+    }
+    return $full
+}
+
+# ── 文件名/字段净化：防止清单里的题名把路径带歪 ───────────────────────────────
+function Protect-Field {
+    param([string]$Text, [int]$MaxLen = 200)
+    if (-not $Text) { return '' }
+    $t = $Text -replace '[\x00-\x1F\x7F]', ' ' -replace '[\\/:*?"<>|]', '_'
+    $t = $t.Trim()
+    if ($t.Length -gt $MaxLen) { $t = $t.Substring(0, $MaxLen) }
+    return $t
+}
